@@ -252,7 +252,7 @@ std::string m_server::receivForTable() {
 	char str[BUFF_SIZE];
 #if defined (__linux__)
 	bzero(package, BUFF_SIZE);
-#elif defined(_WIN32) || defined _WIN64)	
+#elif defined(_WIN32) || defined (_WIN64)	
 	ZeroMemory(str, BUFF_SIZE);	
 #endif
 	recv(socket_client, str, sizeof(str), 0);	
@@ -264,7 +264,7 @@ bool m_server::isExit() {
 	if (pkg_in.starts_with("exit")) {		
 		return true;
 	}
-#elif defined(_WIN32) || defined _WIN64)
+#elif defined(_WIN32) || defined (_WIN64)
 	if (pkg_in._Starts_with("exit")) {		
 		return true;
 	}
@@ -322,6 +322,16 @@ void m_server::requestAPI(SOCKET client_socket) {
 		clientName = userLogin(client_socket);
 		log_cout("[server]: user connect - " + clientName);
 	}	
+	else if (pkg_in.starts_with("m")) {
+		std::string str_out = receivedMessages(clientName);
+		if (str_out.empty()) {
+			str_out = "you no messages!";
+		}
+		else
+			str_out = "messages to you:\n" + str_out
+			+ "\nIf you want to send a message, enter - 'y', to exit - 'exit'";
+		send(client_socket, str_out.c_str(), str_out.length(), 0);
+	}
 	else if (pkg_in._Starts_with("y")) {
 		if (userMessage(client_socket)) {
 			std::string str_out = "Enter message!";
