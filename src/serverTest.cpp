@@ -183,9 +183,7 @@ void m_server::SetToClient(int client_socket) {
 		int bytes_rectv = recv(client_socket, package, sizeof(package), 0);
 
 		if (isExit() || bytes_rectv == -1) {
-			log_cout("[server]Connection closed Соединение закрыто по запросу клиента." + clientName);
-			//nclients--;
-			//PRINTUSERS
+			log_cout("[server]Connection closed Соединение закрыто по запросу клиента." + clientName);			
 			break;
 		}
 		requestAPI(client_socket);
@@ -275,21 +273,21 @@ bool m_server::isExit() {
 
 #if defined (__linux__)
 void m_server::requestAPI(int client_socket) {	
-	if (pkg_in.starts_with("clientRegistration")) {		
+	if (pkg_in.starts_with("exit")) {
+		close(client_socket);
+		log_cout("[server]:Connection closed Соединение закрыто по запросу клиента.");
+	}
+	else if (pkg_in.starts_with("clientRegistration")) {		
 		clientName = userregistration(client_socket);
 	}
 	else if (pkg_in.starts_with("enterChat")) {
 		clientName = userLogin(client_socket);
 		log_cout("[server]: user connect - " + clientName);
-	}
-	else if (pkg_in.starts_with("exit")) {
-		close(client_socket);
-		log_cout("[server]:Connection closed Соединение закрыто по запросу клиента.");
-	}
+	}	
 	else if (pkg_in.starts_with("m")) {
 		std::string str_out =  receivedMessages(clientName);
 		if (str_out.empty()) {
-                str_out = "you no messages!";
+                str_out = "you no messages!\nIf you want to send a message, enter - 'y', to exit - 'exit'";
             }
             else
                 str_out = "messages to you:\n" + str_out 

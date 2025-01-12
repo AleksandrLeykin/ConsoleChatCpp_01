@@ -14,7 +14,7 @@
 //#define SHA2_224_SEED_VECTOR
 
 
-/// same as reset()
+// same as reset()
 SHA256::SHA256()
 {
   reset();
@@ -93,7 +93,7 @@ namespace
 }
 
 
-/// process 64 bytes
+// process 64 bytes
 void SHA256::processBlock(const void* data)
 {
   // get last hash

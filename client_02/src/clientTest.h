@@ -20,24 +20,6 @@ const short BUFF_SIZE = 1024;
 #include <arpa/inet.h>
 
 class myClient {
-private:
-	int clientSocket{};
-	int connectionClient{};
-	struct sockaddr_in serverAddr;
-	struct sockaddr_in clientAddr;
-
-	std::string m_str = "";
-
-	//ввод строки (line input)
-	std::string getLineOfText() {
-		std::string str = "";
-		getline(std::cin, str);
-		return str;
-	}
-	//приём Передача Сообщения
-	std::string receptionTransmissionMes(int client_sock, const std::string& name);
-	void userMessage(int client_sock);
-
 public:
 	myClient();
 	~myClient();
@@ -47,6 +29,39 @@ public:
 	}
 
 	void clientLoading();
+private:
+	int clientSocket{};
+	int connectionClient{};
+	struct sockaddr_in serverAddr;
+	struct sockaddr_in clientAddr;
+	std::string m_str = "";	
+	
+	void userMessage(int client_sock);
+	bool isExit() const;
+	void clientExit() const;
+	//sending message to server отправка сообщения на сервер
+	void sendMessage();
+	//receiving message from server прием сообщения с сервера
+	void receivMessage();
+	//password encoding кодировка пароля
+	void pwdEncoding();
+
+	//____________________________________________________________________
+	//испровляю ошибки с передачей слов
+	char package[BUFF_SIZE]{};
+	//В отличие от std::string, std::string_view не выделяет память
+	std::string_view pkg_in{ package, std::size(package) };
+	// The size of sending / receiving packet in bytes // Размер отправляемого/принимаемого пакета в байтах
+	short packet_size = 0;
+	//____________________________________________________________________
+	//приём Передача Сообщения
+	std::string receptionTransmissionMes(int client_sock, const std::string& name);
+	//ввод строки (line input)
+	std::string getLineOfText() {
+		m_str = "";
+		getline(std::cin, m_str);
+		return m_str;
+	}
 };
 
 #elif defined(_WIN64)

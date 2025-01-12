@@ -1,4 +1,4 @@
-// //////////////////////////////////////////////////////////
+// 
 // sha256.h
 // Copyright (c) 2014,2015 Stephan Brumme. All rights reserved.
 // see http://create.stephan-brumme.com/disclaimer.html
@@ -21,13 +21,13 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 
-/// compute SHA256 hash
-/** Usage:
+// compute SHA256 hash
+/* Usage:
     SHA256 sha256;
     std::string myHash  = sha256("Hello World");     // std::string
     std::string myHash2 = sha256("How are you", 11); // arbitrary data, 11 bytes
 
-    // or in a streaming fashion:  или в потоковом режиме:
+    // or in a streaming fashion:  пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:
 
     SHA256 sha256;
     while (more data available)
@@ -37,39 +37,39 @@ typedef unsigned __int64 uint64_t;
 class SHA256 //: public Hash
 {
 public:
-  /// split into 64 byte blocks (=> 512 bits), hash is 32 bytes long
+  // split into 64 byte blocks (=> 512 bits), hash is 32 bytes long
   enum { BlockSize = 512 / 8, HashBytes = 32 };
 
-  /// same as reset()
+  // same as reset()
   SHA256();
 
-  /// compute SHA256 of a memory block
+  // compute SHA256 of a memory block
   std::string operator()(const void* data, size_t numBytes);
-  /// compute SHA256 of a string, excluding final zero
+  // compute SHA256 of a string, excluding final zero
   std::string operator()(const std::string& text);
 
-  /// add arbitrary number of bytes
+  // add arbitrary number of bytes
   void add(const void* data, size_t numBytes);
 
-  /// return latest hash as 64 hex characters вернуть последний хэш в виде 64 шестнадцатеричных символов
+  // return latest hash as 64 hex characters пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ 64 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   std::string getHash();
   /// return latest hash as bytes
   void        getHash(unsigned char buffer[HashBytes]);
 
-  /// restart
+  // restart
   void reset();
 
 private:
-  /// process 64 bytes
+  // process 64 bytes
   void processBlock(const void* data);
-  /// process everything left in the internal buffer
+  // process everything left in the internal buffer
   void processBuffer();
 
-  /// size of processed data in bytes
+  // size of processed data in bytes
   uint64_t m_numBytes;
-  /// valid bytes in m_buffer
+  // valid bytes in m_buffer
   size_t   m_bufferSize;
-  /// bytes not processed yet
+  // bytes not processed yet
   uint8_t  m_buffer[BlockSize];
 
   enum { HashValues = HashBytes / 4 };

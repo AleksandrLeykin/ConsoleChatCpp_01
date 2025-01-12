@@ -7,15 +7,12 @@ myClient::myClient()
 
 }
 
-myClient::~myClient()
-{
-    shutdown(clientSocket, SHUT_RDWR);
-    close(clientSocket);
+myClient::~myClient() {
+    clientExit();
     std::cout << "Test of exit!" << std::endl;
 }
 
-void myClient::clientLoading()
-{
+void myClient::clientLoading() {
     // Creating a socket Создадание сокета
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket == -1) {
@@ -24,6 +21,7 @@ void myClient::clientLoading()
         return;
     }
 
+    bzero(&serverAddr,sizeof(serverAddr));    
     // Setting the server address Установка  адреса сервера
     serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
     serverAddr.sin_port = htons(SERVER_PORT_NUM);
@@ -37,85 +35,89 @@ void myClient::clientLoading()
         return;
     }
 
-    // Buffers for sending and receiving data // Буферы для отправки и получения данных
-    // char clientBuffer[BUFF_SIZE];
-    // char serverBuff[BUFF_SIZE];
-     std::vector<char> serverBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
-    // The size of sending / receiving packet in bytes Размер отправляемого/принимаемого пакета в байтах
-    short packet_size = 0;
-
     // Взаимодействие с сервером
-    while (1) {
-        // //обнуляем хранилище сообщений
-        // bzero(clientBuffer, sizeof(clientBuffer));
-        // //заполняем буфер
-        // strcpy(clientBuffer, m_str.c_str());
-        clientBuff = { cbegin(m_str), cend(m_str) };
-
-        // Check whether client like to stop chatting Проверьте, хочет ли клиент прекратить общение
-        if (clientBuff[0] == 'e' && clientBuff[1] == 'x' && clientBuff[2] == 'i' && clientBuff[3] == 't') {
-            // Terminate a connection opened on a socket Завершить соединения, открытого на сокете
-            shutdown(clientSocket, SHUT_RDWR);
+    while (true) {        
+     
+        sendMessage();
+        // Check whether client like to stop chatting Проверка, хочет ли клиент прекратить общение
+        if(isExit()) {
             close(clientSocket);
             return;
         }
+        receivMessage(); 
 
-        //sending message to server отправка сообщения на сервер
-        packet_size = send(clientSocket, clientBuff.data(), clientBuff.size(), 0);
-        if (packet_size == -1) {
-            std::cout << "Can't send message to Server. Error # " << std::endl;
-            shutdown(clientSocket, SHUT_RDWR);
-            close(clientSocket);
-            return;
+        if (pkg_in.starts_with("Enter you pass: ")) { 
+            pwdEncoding();            
         }
-
-        // //обнуляем хранилище сообщений
-        // bzero(serverBuff, sizeof(serverBuff));
-        //очистка вектора serverBuff
-        auto it = serverBuff.cbegin();
-        serverBuff.insert(it, serverBuff.size(), '\0');
-
-        //receiving message from server прием сообщения с сервера
-        packet_size = recv(clientSocket, serverBuff.data(), serverBuff.size(), 0);
-        if (packet_size == -1) {
-            std::cout << "Can't receive message from Server. Error # " << std::endl;
-            shutdown(clientSocket, SHUT_RDWR);
-            close(clientSocket);
-            return;
-        }
-        else
-            std::cout << "Server message: " << serverBuff.data() << std::endl;
-
-        //go to messages переход на сообщения
-        if (serverBuff[0] == 'H')
-        {
-            //here we try to accept messages sent to the user
-            //здесь пробуем принять посланные для пользователя сообщения
-            setMyString("m");
-            std::string result = receptionTransmissionMes(clientSocket, m_str);
-            std::cout << result << std::endl;
-
-            //переход на сообщения
-            setMyString("u");
-            result = receptionTransmissionMes(clientSocket, m_str);
-            std::cout << "Registered users:\n" << result << std::endl;
-
-            userMessage(clientSocket);
-        }
-        //m_str = getLineOfText();
-
-        std::cin >> m_str;
-        std::cin.clear();
-        std::cin.ignore(32767, '\n');
-        clientBuff.clear();
-        // bzero(clientBuffer, sizeof(clientBuffer));
+        else {                
+            getLineOfText();
+        }   
+        bzero(package, BUFF_SIZE);       
     }
-
 }
 
+void myClient::sendMessage() {
+    packet_size = 0;    
+    packet_size = send(clientSocket, m_str.c_str(), m_str.length(), 0);
+    if (packet_size == -1) {
+        std::cout << "Can't send message to Server. Error # "<< std::endl;
+        close(clientSocket);        
+        return;
+    }
+}
 
-void myClient::userMessage(int client_sock)
-{
+void myClient::receivMessage() {
+    packet_size = 0;    
+    bzero(package, sizeof(package));    
+    packet_size = recv(clientSocket, package, sizeof(package), 0);
+    if (packet_size == -1) {
+        std::cout << "Can't receive message from Server. Error # " << std::endl;
+        close(clientSocket);        
+        return;
+    }
+    else {        
+        std::cout << "Server message: ";
+        for (int i = 0; i < pkg_in.size(); ++i) {
+            if (pkg_in[i] == '\0') {
+                break;
+            }
+            std::cout << pkg_in[i];
+        }
+        std::cout << "\n";
+    }        
+}
+
+void myClient::pwdEncoding() {    
+    SHA256 sha256;
+    m_str = "";
+    std::cin >> m_str;
+    std::cin.clear();
+    std::cin.ignore(32767, '\n');
+
+    std::string pasword = sha256(m_str);
+    //sending message to server отправка сообщения на сервер   
+    if (send(clientSocket, pasword.c_str(), pasword.length(), 0) == -1) {
+        close(clientSocket);      
+        std::cout << "Can't send message to Server. Error # ";
+    }
+}
+
+bool myClient::isExit() const {
+    if (m_str == "exit") 
+        return true;   
+    else
+        return false;
+}
+
+void myClient::clientExit() const{
+    
+    if (clientSocket != -1) {
+        shutdown(clientSocket, SHUT_RDWR);
+        close(clientSocket);
+    }       
+}
+
+void myClient::userMessage(int client_sock) {
     setMyString("n");
     //запрос имени name request
     std::string result = receptionTransmissionMes(client_sock, m_str);
@@ -142,24 +144,20 @@ std::string myClient::receptionTransmissionMes(int client_sock, const std::strin
         return "Can't send message to Server. Error # ";
     }
     //receiving message from server прием сообщения с сервера
-    if (recv(client_sock, serverBuff.data(), serverBuff.size(), 0) == -1)
-    {
+    if (recv(client_sock, serverBuff.data(), serverBuff.size(), 0) == -1) {
         shutdown(clientSocket, SHUT_RDWR);
         close(clientSocket);
         return "Can't receive message from Server. Error # ";
     }
 
-    std::string str = "";
-    //int size = sizeof(serverBuff) / sizeof(serverBuff[0]);
+    std::string str = "";   
     for (int i = 0; i < serverBuff.size(); i++) {
         if (serverBuff[i] != '\0') {
             str += serverBuff[i];
         }
         else
             break;
-    }
-
-    // std::string str(serverBuff, sizeof(serverBuff));
+    }    
     return str;
 }
 
